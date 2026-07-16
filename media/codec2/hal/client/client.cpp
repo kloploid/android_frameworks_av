@@ -348,6 +348,9 @@ private:
 Codec2ConfigurableClient::HidlImpl::HidlImpl(const sp<Base>& base)
       : mBase{base},
         mName{[base]() -> C2String {
+                if (base == nullptr) {
+                    return "";
+                }
                 C2String outName;
                 Return<void> transStatus = base->getName(
                         [&outName](const hidl_string& name) {
@@ -362,6 +365,9 @@ c2_status_t Codec2ConfigurableClient::HidlImpl::query(
         const std::vector<C2Param::Index> &heapParamIndices,
         c2_blocking_t mayBlock,
         std::vector<std::unique_ptr<C2Param>>* const heapParams) const {
+    if (mBase == nullptr) {
+        return C2_BAD_STATE;
+    }
     hidl_vec<c2_hidl::ParamIndex> indices(
             stackParams.size() + heapParamIndices.size());
     size_t numIndices = 0;
@@ -458,6 +464,9 @@ c2_status_t Codec2ConfigurableClient::HidlImpl::config(
         const std::vector<C2Param*> &params,
         c2_blocking_t mayBlock,
         std::vector<std::unique_ptr<C2SettingResult>>* const failures) {
+    if (mBase == nullptr) {
+        return C2_BAD_STATE;
+    }
     c2_hidl::Params hidlParams;
     if (!c2_hidl::utils::createParamsBlob(&hidlParams, params)) {
         LOG(ERROR) << "config -- bad input.";
@@ -500,6 +509,9 @@ c2_status_t Codec2ConfigurableClient::HidlImpl::config(
 
 c2_status_t Codec2ConfigurableClient::HidlImpl::querySupportedParams(
         std::vector<std::shared_ptr<C2ParamDescriptor>>* const params) const {
+    if (mBase == nullptr) {
+        return C2_BAD_STATE;
+    }
     // TODO: Cache and query properly!
     c2_status_t status;
     Return<void> transStatus = mBase->querySupportedParams(
